@@ -1,6 +1,8 @@
 # Reprypt
 Python Encryption Module
 
+`pip install reprypt`
+
 # How to use
 ```python
 import reprypt
