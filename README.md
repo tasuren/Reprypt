@@ -1,7 +1,6 @@
 # Reprypt
-Python Encryption Module / Pythonの暗号化モジュール
-
-`pip install reprypt`
+Python Encryption Module / Pythonの暗号化モジュール  
+`pip install reprypt`  
 
 # How to use / 使い方
 ```python
