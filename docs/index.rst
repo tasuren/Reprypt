@@ -1,8 +1,8 @@
-# Reprypt - Python Encrypting Module
+# Reprypt - Python Encrypting Module  
 This is the python encrypting module.  
-You can install by run `pip install reprypt`.
+You can install by run `pip install reprypt`.  
 
-# How to use
+# How to use  
 ```python
 import reprypt
 
