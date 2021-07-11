@@ -1,32 +1,198 @@
-version = 2.0.0
-title = """
-______                            _   
-| ___ \                          | |  
-| |_/ /___ _ __  _ __ _   _ _ __ | |_ 
-|    // _ \ '_ \| '__| | | | '_ \| __|
-| |\ \  __/ |_) | |  | |_| | |_) | |_ 
-\_| \_\___| .__/|_|   \__, | .__/ \__|
-          | |          __/ | |        
-          |_|         |___/|_|        
-    by tasuren                 v"""+str(version)+"\n"
+# Reprypt
 
+from typing import Union, Optional, Tuple
+from binascii import hexlify, unhexlify
 from base64 import b64encode, b64decode
 
 
+version = "2.1.0b1"
+
 
 class DecryptError(Exception):
-	pass
+    pass
 
-def c16(text):
+
+def convert_unicode(text: str, length: int = None) -> str:
+    """
+    文字列をUnicodeポイントに変換します。
+    Reprypt内部で使われるものです。
+    """
     r = ""
-    for ti in range(len(text)):
+    if length is None:
+        length = len(text)
+    for ti in range(length):
         r += str(ord(text[ti]))
     return r
 
-def encrypt(text,pa,log=False):
+
+def convert_hex(text: Union[bytes, str], encode: Optional[str],
+                un: bool = False) -> Union[bytes, str]:
+    """
+    文字列を十六進数に変換します。
+    これはRepryptの内部で使われるものです。
+    """
+    will_hexlify = unhexlify if un else hexlify
+    text = (will_hexlify(text) if encode is None
+            else will_hexlify(text.encode(encode)).decode(encode))
+    del will_hexlify
+    return text
+
+
+def replace(text: Union[bytes, str], length: int,
+            original: int, target: int) -> Union[bytes, str]:
+    """
+    文字列のとある位置にある文字をとある位置の文字と交換します。
+    これはRepryptの内部で使われるものです。
+    """
+    after = text[target]
+    end = target + 1
+    end = text[end:] if end < length else ""
+    text = text[:target] + text[original] + end
+    end = original + 1
+    end = text[end:] if end < length else ""
+    text = text[:original] + after + end
+    del end, after
+    return text
+
+
+def parse_key(key: str, key_length: int, text_length: int) -> Tuple[str, int]:
+    """
+    keyを暗号/復号時に最適なkeyに変換します。
+    Repryptの内部で使用されるものです。
+    """
+    while key_length < text_length:
+        error = text_length - key_length
+        if error > key_length:
+            error -= error - key_length
+        key = key + key[0 - error:]
+        key_length += error
+    return key[:key_length], key_length
+
+
+def encrypt(text: Union[str, bytes], key: str, replace_hex: bool = True,
+            encode: Optional[str] = "utf-8", log: bool = False) -> Union[str, bytes]:
+    """
+    暗号化します。
+
+    Parameters
+    ----------
+    text : Union[bytes, str]
+        暗号化する文字列です。
+        もしstr型が渡された場合は引数encodeに渡されているもので文字列にエンコードします。
+    key : str
+        暗号化する際に使用するパスワードです。
+        複合時に必要となります。
+    replace_hex : bool, default True
+        暗号化する前の文章を十六進数に変換するかどうかです。
+        これを無効にした場合は暗号結果は元の文章にある文字しか含まれていません。
+        含まれている文字から内容を推測される可能性があるのでこれを有効にするのを推奨します。
+    encode : Optional[str], default "utf-8"
+        replace_hexがTrueの際に文字列をbytes型に変換する必要があります。
+        その際の変換に使用するエンコードです。
+        もしNoneを入れた場合はtextがbytes型であるとされます。
+    log : bool, default False
+        暗号化の途中経過を出力するかどうかです。
+
+    Returns
+    -------
+    text : str
+        暗号結果です。
+    """
+    if replace_hex:
+        text = convert_hex(text, encode)
+    key, text_length = convert_unicode(key), len(text)
+    key_length, key_index = len(key), -1
+    key, _ = parse_key(key, key_length, text_length)
+    if log:
+        print("Encrypt target	:", text)
+        print("Encrypt key	:", key)
+    for index in range(text_length):
+        key_index += 1
+        target = int(key[key_index])
+        text = replace(text, text_length, index, target)
+        if log:
+            print("  Replaced", index, "->", target, ":", text)
+    return text
+
+
+def decrypt(text: Union[str, bytes], key: str, replace_hex: bool = True,
+            encode: Optional[str] = "utf-8", log: bool = False) -> Union[str, bytes]:
+    """
+    暗号を複合化します。
+
+    Parameters
+    ----------
+    text : Union[bytes, str]
+        復号化する暗号の文字列です。
+        もしstr型が渡された場合は引数encodeに渡されているもので文字列にエンコードします。
+    key : str
+        暗号化する際に使用するパスワードです。
+        復号時時に必要となります。
+    replace_hex : bool, default True
+        暗号時に十六進数に変換してから暗号化した場合はこれをTrueにする必要があります。
+    encode : Optional[str], default "utf-8"
+        replace_hexがTrueの際に文字列をbytes型に変換する必要があります。
+        その際の変換に使用するエンコードです。
+        もしNoneを入れた場合はtextがbytes型であるとされます。
+    log : bool, default False
+        復号の途中経過を出力します。
+
+    Returns
+    -------
+    text : str
+        復号結果です。
+
+    Raises
+    ------
+    DecryptError
+        復号に失敗すると発生します。
+        keyがあっていないまたはencodeが暗号化時とあっていない際に発生します。
+    """
+    key, text_length = convert_unicode(key), len(text)
+    key, key_index = parse_key(key, len(key), text_length)
+    if log:
+        print("Decrypt target	:", text)
+        print("Decrypt key	:", key)
+    for index in reversed(range(text_length)):
+        key_index -= 1
+        target = int(key[key_index])
+        text = replace(text, text_length, target, index)
+        if log:
+            print("  Replaced", target, "->", index, ":", text)
+    if replace_hex:
+        try:
+            text = convert_hex(text, encode, un=True)
+        except UnicodeDecodeError:
+            raise DecryptError("復号化に失敗しました。keyがあっているかencodeが暗号化時と同じかどうか確認してください。")
+    return text
+
+
+def old_encrypt(text: str, pa: str, log: bool = False) -> str:
+    """
+    2.0.0までのRepryptの暗号化です。
+
+    Parameters
+    ----------
+    text : str
+        暗号化する文字列です。
+    pa : str
+        暗号化する際に使用するパスワードです。
+    log : bool, default False
+        暗号化途中のログ出力をするかどうかです。
+
+    Returns
+    -------
+    text : str
+        暗号化結果です。
+
+    See Also
+    --------
+    old_decrypt : 2.0.0までのRepryptで作られた暗号を複合化するためのものです。
+    encrypt : 最新のRepryptの暗号化です。
+    """
     if log:
         print("Start encrypt")
-    pa = c16(pa)
+    pa = convert_unicode(pa)
     text = list(b64encode(text.encode()).decode())
     for i in range(2):
         if i == 1:
@@ -48,10 +214,31 @@ def encrypt(text,pa,log=False):
         print("Done")
     return "".join(text)
 
-def decrypt(text,pa,log=False):
+def old_decrypt(text: str, pa: str, log: bool = False) -> str:
+    """
+    2.0.0までのRepryptで暗号化されたものを複合化します。
+
+    Parameters
+    ----------
+    text : str
+        複合化する文字列です。
+    pa : str
+        複合化する際に使用するパスワードです。
+    log : bool, default False
+        複合化途中のログ出力をするかどうかです。
+
+    Returns
+    -------
+    text : str
+        複合化結果です。
+
+    See Also
+    --------
+    decrypt : 最新のRepryptで作られた暗号を複合化するものです。
+    """
     if log:
         print("Start Decrypt")
-    pa = c16(pa)
+    pa = convert_unicode(pa)
     text = list(text)
     for i in range(2):
         if i == 1:
@@ -83,7 +270,7 @@ def decrypt(text,pa,log=False):
 
 
 if __name__ == "__main__":
-    print(title)
+    print("Reprypt by tasuren")
     end = "False"
     while end != "True":
         cmd = input(">>>")
@@ -92,15 +279,15 @@ if __name__ == "__main__":
         if cmd == "en":
             m = input("SENTENCE >")
             pa = input("PASSWORD >")
-            m = encrypt(m,pa)
-            print("RESULT : "+m)
+            m = encrypt(m, pa)
+            print("RESULT : " + m)
         if cmd == "de":
             m = input("SENTENCE >")
             pa = input("PASSWORD >")
-            de = decrypt(m,pa)
-            print("RESULT : "+de)
-        if cmd in ["version","v"]:
-        	print("v"+str(version))
+            de = decrypt(m, pa)
+            print("RESULT : " + de)
+        if cmd in ("version", "v"):
+        	print("v" + str(version))
         if cmd == "end":
         	print("Bye")
         	end = "True"
