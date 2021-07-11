@@ -12,12 +12,12 @@ start = time()
 
 
 # 暗号化する。
-encryption_result = reprypt.encrypt(TEXT, KEY)
+encryption_result = reprypt.encrypt(TEXT, KEY, converter=reprypt.convert_b64, log=True)
 print("Encryption result :", encryption_result)
 
 
 # 複合化する。
-result = reprypt.decrypt(encryption_result, KEY)
+result = reprypt.decrypt(encryption_result, KEY, converter=reprypt.convert_b64, log=True)
 print("Decryption result :", result)
 
 
