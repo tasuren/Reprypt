@@ -1,12 +1,13 @@
 # Reprypt
 
 from typing import Union, Tuple, List, Dict
-from __init__ import *
+from reprypt import *
 from sys import argv
 
 
 HELP = f"""# Reprypt v{__version__}
 Pythonの暗号作成モジュールです。
+GitHub : https://github.com/tasuren/reprypt
 # 使用方法
 ## 引数一覧
 version\t\tRepryptのバージョンを表示します。
@@ -40,27 +41,32 @@ def option_manager(args: Union[Tuple[str], List[str]]) -> Dict[str, Union[bool, 
     return kwargs
 
 
-varg = argv[1:]
-for word in ("python", "python3", "-m"):
-    for arg in varg:
-        if arg.startswith(word):
-            varg.remove(arg)
-if varg:
-    if varg[0] == "help":
-        print(HELP)
-    elif varg[0] in ("version", "ver", "-V", "--version"):
-        print(__version__)
-    elif varg[0] in ("encrypt", "en") and len(varg) > 2:
-        print("Result :", encrypt(varg[1], varg[2], **option_manager(varg)))
-    elif varg[0] in ("decrypt", "de") and len(varg) > 2:
-        try:
-            result = decrypt(varg[1], varg[2], **option_manager(varg))
-        except Exception as e:
-            print("Error :", e)
+def main():
+    varg = argv[1:]
+    for word in ("python", "python3", "-m"):
+        for arg in varg:
+            if arg.startswith(word):
+                varg.remove(arg)
+    if varg:
+        if varg[0] == "help":
+            print(HELP)
+        elif varg[0] in ("version", "ver", "-V", "--version"):
+            print(__version__)
+        elif varg[0] in ("encrypt", "en") and len(varg) > 2:
+            print("Result :", encrypt(varg[1], varg[2], **option_manager(varg)))
+        elif varg[0] in ("decrypt", "de") and len(varg) > 2:
+            try:
+                result = decrypt(varg[1], varg[2], **option_manager(varg))
+            except Exception as e:
+                print("Error :", e)
+            else:
+                print("Result :", result)
+                del result
         else:
-            print("Result :", result)
-            del result
+            print("Error : 使用方法が違います。`reprypt help`で確認してください。")
     else:
-        print("Error : 使用方法が違います。`reprypt help`で確認してください。")
-else:
-    print(HELP)
+        print(HELP)
+
+
+if __name__ == "__main__":
+    main()
