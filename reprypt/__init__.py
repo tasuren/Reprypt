@@ -5,7 +5,7 @@ from binascii import hexlify, unhexlify
 from base64 import b64encode, b64decode
 
 
-version = "2.1.0b1"
+version = "2.1.0b2"
 
 
 class DecryptError(Exception):
@@ -34,7 +34,7 @@ def convert_b64(text: str, un: bool = False) -> str:
     Examples
     --------
     >>> reprypt.encrypt("You are fine.", "Ma?", converter=reprypt.convert_b64)
-    
+    "yWS=FW=g9L1GBmZ5IlaW"
     """
     return convert_hex(text, un, what_isd=(b64decode, b64encode))
 
@@ -77,14 +77,15 @@ def parse_key(key: str, key_length: int, text_length: int) -> Tuple[str, int]:
     keyを暗号/復号時に最適なkeyに変換します。
     Repryptの内部で使用されるものです。
     """
+    error = 0
     while key_length < text_length:
         error = text_length - key_length
         if error > key_length:
             error -= error - key_length
         key = key + key[0 - error:]
         key_length += error
-    print(key)
-    return key[:key_length], key_length
+    del key_length, error
+    return key[:text_length], text_length
 
 
 def encrypt(text: str, key: str, *, convert: bool = True,
@@ -311,7 +312,7 @@ if __name__ == "__main__":
     while end != "True":
         cmd = input(">>>")
         if cmd == "help":
-            print("help - How to message\nversion - Show version\nen - Encrypt\nde - Decrypt\nend - End")
+            print("help\t- How to message\nversion\t- Show version\nen\t- Encrypt\nde\t- Decrypt\nend\t- End")
         if cmd == "en":
             m = input("SENTENCE >")
             pa = input("PASSWORD >")
