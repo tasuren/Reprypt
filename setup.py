@@ -12,7 +12,7 @@ requires = []
 
 setup(
     name='Reprypt',
-    version='2.2.1',
+    version='2.2.3',
     description='Encryption Module',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -26,7 +26,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "reprypt = __main__:main"
+            "reprypt = reprypt.__main__:main"
         ]
     },
     install_requires=requires,

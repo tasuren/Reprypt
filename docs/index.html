@@ -7,7 +7,8 @@
 <title>reprypt API documentation</title>
 <meta name="description" content="Reprypt
 Pythonの暗号化モジュールです。
-`=QSuIB3=S3W5YBiYZSB0gSGUaV5Z`のような暗号をパスワードで作成することができます。 …" />
+`=QSuIB3=S3W5YBiYZSB0gSGUaV5Z`のような暗号をパスワードで作成することができます。
+…" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -27,8 +28,10 @@ Pythonの暗号化モジュールです。
 <h1 id="reprypt">Reprypt</h1>
 <p>Pythonの暗号化モジュールです。
 <br>
-<code>=QSuIB3=S3W5YBiYZSB0gSGUaV5Z</code>のような暗号をパスワードで作成することができます。
-</p>
+<code>=QSuIB3=S3W5YBiYZSB0gSGUaV5Z</code>のような暗号をパスワードで作成することができます。<br>
+レファレンス：<a href="https://tasuren.github.io/reprypt/">https://tasuren.github.io/reprypt</a>
+リポジトリ　：<a href="https://github.com/tasuren/reprypt">https://github.com/tasuren/reprypt</a>
+作者のサイト：<a href="http://tasuren.f5.si/">http://tasuren.f5.si/</a></p>
 <h2 id="getting-started">Getting started</h2>
 <p>インストールは以下を実行するだけです。</p>
 <pre><code class="language-terminal">pip install reprypt
@@ -62,6 +65,9 @@ Speed   : 0.00008678436279296875
 </code></pre>
 <h2 id="license">LICENSE</h2>
 <p>MIT License</p>
+<h2 id="console">Console</h2>
+<p>Repryptはインストールするとコンソールからも使用することができます。
+<code><a title="reprypt" href="#reprypt">reprypt</a> help</code>で使用方法を確認することができます。</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -76,7 +82,7 @@ from base64 import b64encode, b64decode
 from typing import Union, Tuple
 
 
-__version__ = &#34;2.1.0&#34;
+__version__ = &#34;2.2.2&#34;
 &#34;&#34;&#34;Repryptのバージョンです。  
 PEP440に準拠しています。&#34;&#34;&#34;
 __all__ = (
@@ -929,6 +935,7 @@ keyがあっていないまたはconverterが暗号化時とあっていない�
 </ul>
 </li>
 <li><a href="#license">LICENSE</a></li>
+<li><a href="#console">Console</a></li>
 </ul>
 </li>
 </ul>
