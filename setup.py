@@ -12,11 +12,11 @@ requires = []
 
 setup(
     name='Reprypt',
-    version='2.1.1',
+    version='2.2.3',
     description='Encryption Module',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/tasuren/reprypt',
+    url='https://tasuren.github.io/reprypt/',
     author='tasuren',
     author_email='tasuren5@gmail.com',
     license='MIT',
@@ -24,6 +24,11 @@ setup(
     packages=[
         "reprypt"
     ],
+    entry_points={
+        "console_scripts": [
+            "reprypt = reprypt.__main__:main"
+        ]
+    },
     install_requires=requires,
     classifiers=[
         'Programming Language :: Python :: 3.6',

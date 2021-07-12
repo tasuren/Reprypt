@@ -1,7 +1,9 @@
 # Reprypt
 Pythonの暗号化モジュールです。    
 `=QSuIB3=S3W5YBiYZSB0gSGUaV5Z`のような暗号をパスワードで作成することができます。  
-ドキュメントは[ここ](https://tasuren.github.io/reprypt/)から確認することができます。
+レファレンス：[https://tasuren.github.io/reprypt](https://tasuren.github.io/reprypt/)
+リポジトリ　：[https://github.com/tasuren/reprypt](https://github.com/tasuren/reprypt)
+作者のサイト：[http://tasuren.f5.si/](http://tasuren.f5.si/)
 
 ## Getting started
 インストールは以下を実行するだけです。
@@ -42,3 +44,7 @@ Speed	: 0.00008678436279296875
 
 ## LICENSE
 MIT License
+
+## Console
+Repryptはインストールするとコンソールからも使用することができます。
+`reprypt help`で使用方法を確認することができます。

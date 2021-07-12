@@ -4,3 +4,4 @@ __pycache__
 Reprypt.egg-info
 build
 dist
+*.yml
