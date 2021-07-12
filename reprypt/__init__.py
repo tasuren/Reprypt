@@ -1,11 +1,11 @@
 # Reprypt
 
-from typing import Union, Optional, Tuple
 from binascii import hexlify, unhexlify
 from base64 import b64encode, b64decode
+from typing import Union, Tuple
 
 
-version = "2.1.0b2"
+version = "2.1.0rc2"
 
 
 class DecryptError(Exception):
@@ -16,7 +16,7 @@ def convert_unicode(text: str, length: int = None) -> str:
     """
     文字列をUnicodeポイントに変換します。
     Reprypt内部で使われるものです。
-    注意：これは暗号化/複合化する際に難読化するのに使うものではありません。
+    注意：これは暗号化/復号化する際に難読化するのに使うものではありません。
     """
     r = ""
     if length is None:
@@ -43,7 +43,7 @@ def convert_hex(text: str, un: bool,
                 what_isd: object = (unhexlify, hexlify)) -> str:
     """
     文字列を十六進数に変換します。
-    これはRepryptの暗号化/複合化する際に難読化するのにデフォルトで使用されるものです。
+    これはRepryptの暗号化/復号化する際に難読化するのにデフォルトで使用されるものです。
     もしこれを他のもので使いたい場合はconvert_b64を使うなどしましょう。
 
     See Also
@@ -99,7 +99,7 @@ def encrypt(text: str, key: str, *, convert: bool = True,
         暗号化する文字列です。
     key : str
         暗号化する際に使用するパスワードです。
-        複合時に必要となります。
+        復号時に必要となります。
     convert : bool, default True
         暗号化する前の文章をconverterに入れた関数を使用して他のものに変換するかどうかです。
         これを無効にした場合は暗号結果は元の文章にある文字しか含まれていません。
@@ -142,7 +142,7 @@ def encrypt(text: str, key: str, *, convert: bool = True,
 def decrypt(text: str, key: str, convert: bool = True,
             converter: object = convert_hex, log: bool = False) -> Union[str]:
     """
-    暗号を複合化します。
+    暗号を復号化します。
 
     Parameters
     ----------
@@ -198,7 +198,9 @@ def decrypt(text: str, key: str, convert: bool = True,
         try:
             text = converter(text, True)
         except Exception as e:
-            raise DecryptError("復号化に失敗しました。keyがあっているかencodeが暗号化時と同じかどうか確認してください。:" + str(e))
+            code = ("復号化に失敗しました。keyがあっているかencodeが暗号化時と同じかどうか確認してください。:"
+                    + str(e))
+            raise DecryptError(code)
     if log:
         print("Result\t:", text)
     return text
@@ -224,7 +226,7 @@ def old_encrypt(text: str, pa: str, log: bool = False) -> str:
 
     See Also
     --------
-    old_decrypt : 2.0.0までのRepryptで作られた暗号を複合化するためのものです。
+    old_decrypt : 2.0.0までのRepryptで作られた暗号を復号化するためのものです。
     encrypt : 最新のRepryptの暗号化です。
     """
     if log:
@@ -251,27 +253,28 @@ def old_encrypt(text: str, pa: str, log: bool = False) -> str:
         print("Done")
     return "".join(text)
 
+
 def old_decrypt(text: str, pa: str, log: bool = False) -> str:
     """
-    2.0.0までのRepryptで暗号化されたものを複合化します。
+    2.0.0までのRepryptで暗号化されたものを復号化します。
 
     Parameters
     ----------
     text : str
-        複合化する文字列です。
+        復号化する文字列です。
     pa : str
-        複合化する際に使用するパスワードです。
+        復号化する際に使用するパスワードです。
     log : bool, default False
-        複合化途中のログ出力をするかどうかです。
+        復号化途中のログ出力をするかどうかです。
 
     Returns
     -------
     text : str
-        複合化結果です。
+        復号化結果です。
 
     See Also
     --------
-    decrypt : 最新のRepryptで作られた暗号を複合化するものです。
+    decrypt : 最新のRepryptで作られた暗号を復号化するものです。
     """
     if log:
         print("Start Decrypt")
@@ -280,9 +283,9 @@ def old_decrypt(text: str, pa: str, log: bool = False) -> str:
     for i in range(2):
         if i == 1:
             text.reverse()
-        l = list(range(len(text)))
-        l.reverse()
-        for ti in l:
+        l_ = list(range(len(text)))
+        l_.reverse()
+        for ti in l_:
             li = list(range(len(pa)))
             li.reverse()
             for pi in li:
@@ -300,9 +303,12 @@ def old_decrypt(text: str, pa: str, log: bool = False) -> str:
     if log:
         print("Done")
     try:
-    	text = b64decode("".join(text).encode()).decode()
-    except:
-    	raise DecryptError("Failed to decode Base64. Please check if the password is correct.")
+        text = b64decode("".join(text).encode()).decode()
+    except Exception as e:
+        code = ("Failed to decode Base64. "
+                + "Please check if the password is correct."
+                + ":" + str(e))
+        raise DecryptError(code)
     return text
 
 
@@ -312,7 +318,9 @@ if __name__ == "__main__":
     while end != "True":
         cmd = input(">>>")
         if cmd == "help":
-            print("help\t- How to message\nversion\t- Show version\nen\t- Encrypt\nde\t- Decrypt\nend\t- End")
+            h = ("help\t- How to message\nversion\t- Show version\nen"
+                 + "\t- Encrypt\nde\t- Decrypt\nend\t- End")
+            print(h)
         if cmd == "en":
             m = input("SENTENCE >")
             pa = input("PASSWORD >")
@@ -324,7 +332,7 @@ if __name__ == "__main__":
             de = decrypt(m, pa)
             print("RESULT : " + de)
         if cmd in ("version", "v"):
-        	print("v" + str(version))
+            print("v" + str(version))
         if cmd == "end":
-        	print("Bye")
-        	end = "True"
+            print("Bye")
+            end = "True"
