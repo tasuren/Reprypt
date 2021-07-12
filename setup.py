@@ -15,7 +15,7 @@ setup(
     version='2.1.1',
     description='Encryption Module',
     long_description=long_description,
-    long_description_content_type=”text/markdown”,
+    long_description_content_type="text/markdown",
     url='https://github.com/tasuren/reprypt',
     author='tasuren',
     author_email='tasuren5@gmail.com',
