@@ -8,7 +8,7 @@ from base64 import b64encode, b64decode
 from typing import Union, Tuple
 
 
-__version__ = "2.2.3"
+__version__ = "2.2.4"
 """Repryptのバージョンです。  
 PEP440に準拠しています。"""
 __all__ = (
