@@ -1,23 +1,33 @@
-# Reprypt
+"""
+.. include:: ../README.md
+"""
+# Reprypt by tasuren
 
 from binascii import hexlify, unhexlify
 from base64 import b64encode, b64decode
 from typing import Union, Tuple
 
 
-version = "2.1.0rc2"
+__version__ = "2.1.0"
+"""Repryptのバージョンです。  
+PEP440に準拠しています。"""
+__all__ = (
+    "encrypt", "decrypt",
+    "convert_b64", "convert_hex",
+    "old_encrypt", "old_decrypt",
+    "__version__", "DecryptError"
+)
 
 
 class DecryptError(Exception):
+    """
+    復号化失敗時に発生する例外です。  
+    暗号化時に使用したkeyまたはconverterが違う際などに発生します。  
+    """
     pass
 
 
 def convert_unicode(text: str, length: int = None) -> str:
-    """
-    文字列をUnicodeポイントに変換します。
-    Reprypt内部で使われるものです。
-    注意：これは暗号化/復号化する際に難読化するのに使うものではありません。
-    """
     r = ""
     if length is None:
         length = len(text)
@@ -26,29 +36,46 @@ def convert_unicode(text: str, length: int = None) -> str:
     return r
 
 
-def convert_b64(text: str, un: bool = False) -> str:
+def convert_b64(text: str, un: bool) -> str:
     """
-    文字列をBase64でエンコード/デコードします。
-    これはRepryptの暗号化/復号化する際に難読化するのに使用できるものです。
+    文字列をBase64でエンコード/デコードします。  
+    これはRepryptの暗号化する際に難読化するのにデフォルト使用されるものです。  
+    そのため普通は使いません。
 
-    Examples
+    Parameters
+    ----------
+    test : str
+        エンコードまたはデコードする対象の文字列です。
+    un : bool
+        これがFalseの場合はエンコード,Trueの場合はデコードをします。
+
+    See Also
     --------
-    >>> reprypt.encrypt("You are fine.", "Ma?", converter=reprypt.convert_b64)
-    "yWS=FW=g9L1GBmZ5IlaW"
+    convert_hex : 文字列を十六進数に変換します。Repryptの難読化に使用可能です。
     """
     return convert_hex(text, un, what_isd=(b64decode, b64encode))
 
 
 def convert_hex(text: str, un: bool,
-                what_isd: object = (unhexlify, hexlify)) -> str:
+                what_isd: Tuple[object] = (unhexlify, hexlify)) -> str:
     """
-    文字列を十六進数に変換します。
-    これはRepryptの暗号化/復号化する際に難読化するのにデフォルトで使用されるものです。
-    もしこれを他のもので使いたい場合はconvert_b64を使うなどしましょう。
+    文字列を十六進数に変換します。  
+    これはRepryptの暗号化する際に難読化するのに使用することができるものです。  
 
-    See Also
+    Examples
     --------
-    convert_b64 : 文字列をBase64でエンコード/デコードします。
+    >>> reprypt.encrypt("You are fine.", "Ma?", converter=reprypt.convert_hex)
+    '051e292e66f566757206296665'
+
+    Parameters
+    ----------
+    text : str
+        十六進数に変換する対象の文字列です。
+    un : bool
+        これがFalseの場合は十六進数に変換、Trueの場合は十六進数から元に戻します。
+    what_isd : Tuple[object], default (binascii.unhexlify, binascii.hexlify)
+        十六進数の変換に使うものです。  
+        普通はここは変更しません。  
     """
     will_hexlify = what_isd[0] if un else what_isd[1]
     text = will_hexlify(text.encode()).decode()
@@ -57,10 +84,7 @@ def convert_hex(text: str, un: bool,
 
 
 def replace(text: str, length: int, original: int, target: int) -> str:
-    """
-    文字列のとある位置にある文字をとある位置の文字と交換します。
-    これはRepryptの内部で使われるものです。
-    """
+    # 文字列の対象の位置にあるものを対象の位置と交換する関数です。
     after = text[target]
     end = target + 1
     end = text[end:] if end < length else ""
@@ -73,10 +97,7 @@ def replace(text: str, length: int, original: int, target: int) -> str:
 
 
 def parse_key(key: str, key_length: int, text_length: int) -> Tuple[str, int]:
-    """
-    keyを暗号/復号時に最適なkeyに変換します。
-    Repryptの内部で使用されるものです。
-    """
+    # 暗号化/復号化時に最適な状態にパスワードを調整する関数です。
     error = 0
     while key_length < text_length:
         error = text_length - key_length
@@ -89,26 +110,26 @@ def parse_key(key: str, key_length: int, text_length: int) -> Tuple[str, int]:
 
 
 def encrypt(text: str, key: str, *, convert: bool = True,
-            converter: object = convert_hex, log: bool = False) -> str:
+            converter: object = convert_b64, log: bool = False) -> str:
     """
-    暗号化します。
+    渡された文字列をRepryptで暗号化します。
 
     Parameters
     ----------
     text : str
         暗号化する文字列です。
     key : str
-        暗号化する際に使用するパスワードです。
+        暗号化する際に使用するパスワードです。  
         復号時に必要となります。
     convert : bool, default True
-        暗号化する前の文章をconverterに入れた関数を使用して他のものに変換するかどうかです。
-        これを無効にした場合は暗号結果は元の文章にある文字しか含まれていません。
+        暗号化する前の文章をconverterに入れた関数を使用して他のものに変換するかどうかです。  
+        これを無効にした場合は暗号結果は元の文章にある文字しか含まれていません。  
         含まれている文字から内容を推測される可能性があるのでこれを有効にするのを推奨します。
-    converter : object, default convert_hex
-        convertがTrueの際に何を使用して変換を行うかです。
-        デフォルトはconvert_hexです。(`reprypt.convert_hex`)
-        他にBase64に変換する(`reprypt.convert_b64`)があります。
-        自分の作ったものを使う場合は以下のようにした関数を使用してください。
+    converter : object, default convert_b64
+        convertがTrueの際に何を使用して変換を行うかです。  
+        デフォルトはBase64でエンコードする`reprypt.convert_b64`です。  
+        他に十六進数に変換する`reprypt.convert_hex`があります。  
+        自分の作ったものを使う場合は以下のようにした関数を使用してください。  
         `変換対象: str, 変換をするか逆変換か: bool`
     log : bool, default False
         暗号化の途中経過を出力するかどうかです。
@@ -133,14 +154,12 @@ def encrypt(text: str, key: str, *, convert: bool = True,
             target = int(target / 2)
         text = replace(text, text_length, index, target)
         if log:
-            print("  Replaced", index, "->", target, ":", text)
-    if log:
-        print("Result\t:", text)
+            print("  Replaced", index, "->", str(target) + "\t:", text)
     return text
 
 
 def decrypt(text: str, key: str, convert: bool = True,
-            converter: object = convert_hex, log: bool = False) -> Union[str]:
+            converter: object = convert_b64, log: bool = False) -> Union[str]:
     """
     暗号を復号化します。
 
@@ -148,17 +167,16 @@ def decrypt(text: str, key: str, convert: bool = True,
     ----------
     text : str
         復号化する暗号の文字列です。
-        もしstr型が渡された場合は引数encodeに渡されているもので文字列にエンコードします。
     key : str
-        暗号化する際に使用するパスワードです。
-        復号時時に必要となります。
+        暗号化に設定したパスワードです。
     convert : bool, default True
-        暗号化時にもしこれを有効にした場合はこれを有効にする必要があります。
-        変換に使用されるのはconverterに入れたものが使われます。
-    converter : object, default convert_hex
-        convertにTrueが入れられた際の変換に使用する関数です。
-        デフォルトは十六進数に変換するものです。(`reprypt.convert_hex`)
-        他にBase64に変換するものがあります。`reprypt.encrypt`のconverterに詳細があります。
+        暗号化時にもしこれをTrueを設定した場合はこれを有効にする必要があります。  
+        これがなんなのかの詳細は`reprypt.encrypt`のconvertにあります。
+    converter : object, default convert_b64
+        convertにTrueが入れられた際の変換に使用する関数です。  
+        暗号化時と同じものにする必要があります。  
+        デフォルトはBase64でデコードする`reprypt.convert_b64`が使われます。  
+        他に十六進数に変換するものがあります。`reprypt.encrypt`のconverterに詳細があります。
     log : bool, default False
         復号の途中経過を出力します。
 
@@ -170,8 +188,8 @@ def decrypt(text: str, key: str, convert: bool = True,
     Raises
     ------
     DecryptError
-        復号に失敗すると発生します。
-        keyがあっていないまたはencodeが暗号化時とあっていない際に発生します。
+        復号に失敗すると発生します。  
+        keyがあっていないまたはconverterが暗号化時とあっていない際に発生します。
 
     See Also
     --------
@@ -193,22 +211,24 @@ def decrypt(text: str, key: str, convert: bool = True,
             target = int(target / 2)
         text = replace(text, text_length, target, index)
         if log:
-            print("  Replaced", target, "->", index, ":", text)
+            print("  Replaced", target, "->", str(index) + "\t:", text)
     if convert:
         try:
             text = converter(text, True)
         except Exception as e:
-            code = ("復号化に失敗しました。keyがあっているかencodeが暗号化時と同じかどうか確認してください。:"
+            code = ("復号化に失敗しました。keyがあっているかconverterが暗号化時と同じかどうか確認してください。:"
                     + str(e))
             raise DecryptError(code)
-    if log:
-        print("Result\t:", text)
     return text
 
 
 def old_encrypt(text: str, pa: str, log: bool = False) -> str:
     """
     2.0.0までのRepryptの暗号化です。
+
+    Notes
+    -----
+    速度が遅いため最新の`reprypt.encrypt`を使用することを勧めます。
 
     Parameters
     ----------
@@ -256,7 +276,13 @@ def old_encrypt(text: str, pa: str, log: bool = False) -> str:
 
 def old_decrypt(text: str, pa: str, log: bool = False) -> str:
     """
-    2.0.0までのRepryptで暗号化されたものを復号化します。
+    2.0.0までのRepryptで暗号化されたものを復号化します。  
+
+    Notes
+    -----
+    遅いため最新の`reprypt.decrypt`を使用するのを勧めます。  
+    ですが、2.0.0までのバージョンのRepryptで作った暗号はこの関数でないと復号化できません。  
+    ご注意ください。
 
     Parameters
     ----------
@@ -313,26 +339,4 @@ def old_decrypt(text: str, pa: str, log: bool = False) -> str:
 
 
 if __name__ == "__main__":
-    print("Reprypt by tasuren")
-    end = "False"
-    while end != "True":
-        cmd = input(">>>")
-        if cmd == "help":
-            h = ("help\t- How to message\nversion\t- Show version\nen"
-                 + "\t- Encrypt\nde\t- Decrypt\nend\t- End")
-            print(h)
-        if cmd == "en":
-            m = input("SENTENCE >")
-            pa = input("PASSWORD >")
-            m = encrypt(m, pa)
-            print("RESULT : " + m)
-        if cmd == "de":
-            m = input("SENTENCE >")
-            pa = input("PASSWORD >")
-            de = decrypt(m, pa)
-            print("RESULT : " + de)
-        if cmd in ("version", "v"):
-            print("v" + str(version))
-        if cmd == "end":
-            print("Bye")
-            end = "True"
+    import __main__
