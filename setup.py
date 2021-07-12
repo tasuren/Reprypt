@@ -12,7 +12,7 @@ requires = []
 
 setup(
     name='Reprypt',
-    version='2.1.0',
+    version='2.1.1',
     description='Encryption Module',
     long_description=long_description,
     long_description_content_type=”text/markdown”,
