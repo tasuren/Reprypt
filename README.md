@@ -1,6 +1,7 @@
 # Reprypt
 Pythonの暗号化モジュールです。    
 `=QSuIB3=S3W5YBiYZSB0gSGUaV5Z`のような暗号をパスワードで作成することができます。  
+ドキュメントは[ここ](https://tasuren.github.io/reprypt/)から確認することができます。
 
 ## Getting started
 インストールは以下を実行するだけです。
