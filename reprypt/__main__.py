@@ -5,7 +5,7 @@ from __init__ import *
 from sys import argv
 
 
-HELP = f"""# Reprypt v{version}
+HELP = f"""# Reprypt v{__version__}
 Pythonの暗号作成モジュールです。
 # 使用方法
 ## 引数一覧
@@ -49,7 +49,7 @@ if varg:
     if varg[0] == "help":
         print(HELP)
     elif varg[0] in ("version", "ver", "-V", "--version"):
-        print(version)
+        print(__version__)
     elif varg[0] in ("encrypt", "en") and len(varg) > 2:
         print("Result :", encrypt(varg[1], varg[2], **option_manager(varg)))
     elif varg[0] in ("decrypt", "de") and len(varg) > 2:
